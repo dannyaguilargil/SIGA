@@ -13,4 +13,14 @@ class Organization extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function credentialRequestForms(): HasMany
+    {
+        return $this->hasMany(CredentialRequestForm::class);
+    }
+
+    public function aplicativos(): HasMany
+    {
+        return $this->hasMany(Aplicativo::class);
+    }
 }

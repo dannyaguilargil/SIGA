@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\AplicativoController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CredentialRequestController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\RequestFormController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login');
@@ -19,6 +23,27 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::view('/inicio', 'dashboard')->name('dashboard');
+    Route::get('/inicio', DashboardController::class)->middleware('organization.admin')->name('dashboard');
+    Route::view('/mi-cuenta', 'member')->name('member.home');
+    Route::get('/solicitudes', [CredentialRequestController::class, 'index'])->name('requests.index');
+    Route::get('/solicitudes/{form}', [CredentialRequestController::class, 'create'])->name('requests.create');
+    Route::post('/solicitudes/{form}', [CredentialRequestController::class, 'store'])->name('requests.store');
     Route::post('/cerrar-sesion', [AuthController::class, 'destroy'])->name('logout');
+});
+
+Route::middleware(['auth', 'organization.admin'])->prefix('administracion/formularios')->name('forms.')->group(function (): void {
+    Route::get('/', [RequestFormController::class, 'index'])->name('index');
+    Route::get('/crear', [RequestFormController::class, 'create'])->name('create');
+    Route::post('/', [RequestFormController::class, 'store'])->name('store');
+    Route::get('/{form}/editar', [RequestFormController::class, 'edit'])->name('edit');
+    Route::put('/{form}', [RequestFormController::class, 'update'])->name('update');
+    Route::delete('/{form}', [RequestFormController::class, 'destroy'])->name('destroy');
+});
+
+Route::middleware(['auth', 'organization.admin'])->prefix('administracion/aplicativos')->name('applications.')->group(function (): void {
+    Route::get('/', [AplicativoController::class, 'index'])->name('index');
+    Route::post('/', [AplicativoController::class, 'store'])->name('store');
+    Route::delete('/{aplicativo}', [AplicativoController::class, 'destroy'])->name('destroy');
+    Route::post('/{aplicativo}/elementos', [AplicativoController::class, 'storeModulo'])->name('elements.store');
+    Route::delete('/{aplicativo}/elementos/{modulo}', [AplicativoController::class, 'destroyModulo'])->name('elements.destroy');
 });

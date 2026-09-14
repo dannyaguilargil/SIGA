@@ -34,7 +34,9 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route(
+            $request->user()->is_organization_admin ? 'dashboard' : 'member.home'
+        ));
     }
 
     public function showRegistration(): Response
@@ -55,21 +57,22 @@ class AuthController extends Controller
         ]);
 
         $user = DB::transaction(function () use ($data): User {
-            $organization = filled($data['organization_name'] ?? null)
-                ? Organization::firstOrCreate(['name' => trim($data['organization_name'])])
-                : Organization::findOrFail($data['organization_id']);
+            $organization = filled($data['organization_id'] ?? null)
+                ? Organization::findOrFail($data['organization_id'])
+                : Organization::firstOrCreate(['name' => trim($data['organization_name'])]);
 
             return User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'organization_id' => $organization->id,
+                'is_organization_admin' => $organization->wasRecentlyCreated,
             ]);
         });
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard');
+        return redirect()->route($user->is_organization_admin ? 'dashboard' : 'member.home');
     }
 
     public function redirectToGoogle(): Response|RedirectResponse

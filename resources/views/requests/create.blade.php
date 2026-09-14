@@ -1,0 +1,17 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ $form->name }} · SIGA</title><style>:root{--ink:#182235;--muted:#667085;--line:#dce2ec;--brand:#4b42ef;--canvas:#f5f7fb}*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font-family:Inter,system-ui,sans-serif}.page{max-width:700px;margin:auto;padding:38px 24px}.back{color:var(--brand);text-decoration:none;font-size:.9rem}h1{margin:1rem 0 .4rem}.intro{margin:0 0 25px;color:var(--muted)}.card{padding:26px;background:#fff;border:1px solid var(--line);border-radius:16px}label{display:block;margin:18px 0 6px;font-size:.87rem;font-weight:750}input,textarea,select{width:100%;padding:.78rem;border:1px solid #abb5c4;border-radius:8px;font:inherit}textarea{min-height:100px}.required,.error{color:#be123c}.error{margin:5px 0;font-size:.8rem}.send{margin-top:24px;padding:.85rem 1.1rem;color:#fff;background:var(--brand);border:0;border-radius:9px;font:inherit;font-weight:800;cursor:pointer}</style></head><body><main class="page"><a class="back" href="{{ route('requests.index') }}">← Solicitudes</a><h1>{{ $form->name }}</h1><p class="intro">{{ $form->description }}</p><form class="card" method="POST" action="{{ route('requests.store', $form) }}">@csrf
+@foreach ($form->fields as $field)
+<label for="field-{{ $field->id }}">{{ $field->label }} @if ($field->is_required)<span class="required">*</span>@endif</label>
+@if ($field->type === 'textarea')
+<textarea id="field-{{ $field->id }}" name="answers[{{ $field->id }}]" @required($field->is_required)>{{ old('answers.'.$field->id) }}</textarea>
+@elseif ($field->type === 'select')
+<select id="field-{{ $field->id }}" name="answers[{{ $field->id }}]" @required($field->is_required)><option value="">Selecciona una opción</option>@foreach ($field->options as $option)<option value="{{ $option }}" @selected(old('answers.'.$field->id) === $option)>{{ $option }}</option>@endforeach</select>
+@elseif ($field->type === 'aplicativo')
+<select class="aplicativo" id="field-{{ $field->id }}" name="answers[{{ $field->id }}]" @required($field->is_required)><option value="">Selecciona un aplicativo</option>@foreach ($aplicativos as $aplicativo)<option value="{{ $aplicativo->id }}" @selected(old('answers.'.$field->id) == $aplicativo->id)>{{ $aplicativo->nombre_aplicativo }}</option>@endforeach</select>
+@elseif ($field->type === 'modulo')
+<select class="modulo" id="field-{{ $field->id }}" name="answers[{{ $field->id }}]" @required($field->is_required)><option value="">Primero selecciona un aplicativo</option></select>
+@else
+<input id="field-{{ $field->id }}" type="{{ $field->type }}" name="answers[{{ $field->id }}]" value="{{ old('answers.'.$field->id) }}" @required($field->is_required)>
+@endif
+@error('answers.'.$field->id)<p class="error">{{ $message }}</p>@enderror
+@endforeach
+<button class="send" type="submit">Enviar solicitud</button></form></main><script>const apps=@json($applicationOptions);function loadModules(){const app=apps.find(item=>String(item.id)===document.querySelector('.aplicativo')?.value);document.querySelectorAll('.modulo').forEach(select=>{select.innerHTML='<option value="">Selecciona un módulo</option>' +(app?.modulos??[]).map(module=>`<option value="${module.id}">${module.name}</option>`).join('')})}document.querySelectorAll('.aplicativo').forEach(select=>select.addEventListener('change',loadModules));loadModules();</script></body></html>

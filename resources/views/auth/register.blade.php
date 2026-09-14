@@ -13,20 +13,26 @@
         <label for="email">Correo electrónico</label>
         <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required>
         @error('email') <ul class="errors"><li>{{ $message }}</li></ul> @enderror
-        <label for="organization_id">Organización</label>
-        <select id="organization_id" name="organization_id">
-            <option value="" disabled @selected(! old('organization_id'))>Seleccionar organización</option>
+        <label for="organization_name">Organización</label>
+        <input
+            id="organization_name"
+            name="organization_name"
+            list="organization-options"
+            value="{{ old('organization_name', $organizations->firstWhere('id', old('organization_id'))?->name) }}"
+            placeholder="Escribe para buscar una organización"
+            autocomplete="off"
+            maxlength="255"
+            required
+        >
+        <input id="organization_id" name="organization_id" type="hidden" value="{{ old('organization_id') }}">
+        <datalist id="organization-options">
             @foreach ($organizations as $organization)
-                <option value="{{ $organization->id }}" @selected(old('organization_id') == $organization->id)>{{ $organization->name }}</option>
+                <option value="{{ $organization->name }}" data-organization-id="{{ $organization->id }}"></option>
             @endforeach
-        </select>
+        </datalist>
         @error('organization_id') <ul class="errors"><li>{{ $message }}</li></ul> @enderror
-        <p class="organization-help">¿No encuentras tu organización? <button class="text-button" type="button" data-organization-create>+ Crear nueva organización</button></p>
-        <div id="new-organization" class="create-organization @if(old('organization_name')) is-visible @endif">
-            <label for="organization_name">Nombre de la nueva organización</label>
-            <input id="organization_name" name="organization_name" value="{{ old('organization_name') }}" maxlength="255">
-            @error('organization_name') <ul class="errors"><li>{{ $message }}</li></ul> @enderror
-        </div>
+        @error('organization_name') <ul class="errors"><li>{{ $message }}</li></ul> @enderror
+        <p id="organization-help" class="organization-help">Escribe para buscar. Si no existe una coincidencia exacta, se creará al registrar tu cuenta.</p>
         <label for="password">Contraseña <small>(mínimo 12 caracteres)</small></label>
         <div class="password"><input id="password" name="password" type="password" autocomplete="new-password" required><button class="toggle" type="button" data-password-toggle="password" aria-label="Mostrar contraseña">Mostrar</button></div>
         <label for="password_confirmation">Confirma tu contraseña</label>

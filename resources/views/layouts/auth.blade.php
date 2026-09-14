@@ -19,7 +19,7 @@
         .google { display:flex; align-items:center; justify-content:center; gap:12px; border:1px solid #182235; background:white; color:#263142; text-decoration:none; } .google:hover { background:#f8f9fc; transform:translateY(-1px); } .google span { font-size:1.25rem; font-weight:800; background:conic-gradient(from -35deg,#4285f4 0 25%,#34a853 0 43%,#fbbc05 0 61%,#ea4335 0 82%,#4285f4 0); -webkit-background-clip:text; background-clip:text; color:transparent; }
         .options { display:flex; justify-content:space-between; align-items:center; gap:.75rem; margin-top:1.35rem; font-size:.88rem; } .check { display:flex; align-items:center; gap:.5rem; white-space:nowrap; } .check input { width:17px; height:17px; accent-color:var(--brand); padding:0; } a { color:var(--brand); text-decoration:none; } a:hover { text-decoration:underline; }
         .alert { margin:1rem 0; padding:.8rem 1rem; border-radius:10px; font-size:.9rem; } .alert-error { color:#9f1239; background:#fff1f2; } .alert-success { color:#166534; background:#f0fdf4; } .errors { margin:.5rem 0 0; padding:0; list-style:none; color:var(--danger); font-size:.82rem; }
-        .footer { margin-top:1.65rem; color:var(--muted); font-size:.88rem; text-align:center; } .back { display:inline-block; margin-top:1.3rem; font-size:.9rem; } .organization-help { margin:.7rem 0 0; color:var(--muted); font-size:.84rem; } .text-button { padding:0; border:0; background:transparent; color:var(--brand); font:inherit; cursor:pointer; } .create-organization { display:none; } .create-organization.is-visible { display:block; }
+        .footer { margin-top:1.65rem; color:var(--muted); font-size:.88rem; text-align:center; } .back { display:inline-block; margin-top:1.3rem; font-size:.9rem; } .organization-help { margin:.7rem 0 0; color:var(--muted); font-size:.84rem; } .organization-help.is-match { color:#166534; }
         @media (max-width:800px) { .page { grid-template-columns:1fr; gap:0; width:min(100% - 1.5rem, 470px); padding:1.5rem 0; } .brand { text-align:center; padding:1.4rem .6rem 2rem; } .brand h1 { font-size:2.3rem; margin:.8rem auto .5rem; } .brand p { font-size:.96rem; margin:auto; } .mark { width:44px; height:44px; border-radius:13px; } .card { justify-self:stretch; padding:30px 24px; border-radius:20px; } }
     </style>
 </head>
@@ -41,13 +41,28 @@
             button.setAttribute('aria-label', input.type === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña');
             button.textContent = input.type === 'password' ? 'Mostrar' : 'Ocultar';
         }));
-        document.querySelectorAll('[data-organization-create]').forEach((button) => button.addEventListener('click', () => {
-            const field = document.getElementById('new-organization');
-            const select = document.getElementById('organization_id');
-            field.classList.toggle('is-visible');
-            select.disabled = field.classList.contains('is-visible');
-            if (select.disabled) document.getElementById('organization_name').focus();
-        }));
+        const organizationName = document.getElementById('organization_name');
+        const organizationId = document.getElementById('organization_id');
+        const organizationHelp = document.getElementById('organization-help');
+
+        if (organizationName && organizationId && organizationHelp) {
+            const organizations = [...document.querySelectorAll('#organization-options option')];
+            const normalize = (value) => value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+
+            const selectOrganization = () => {
+                const match = organizations.find((option) => normalize(option.value) === normalize(organizationName.value));
+
+                organizationId.value = match?.dataset.organizationId ?? '';
+                organizationHelp.classList.toggle('is-match', Boolean(match));
+                organizationHelp.textContent = match
+                    ? `Organización encontrada: ${match.value}.`
+                    : 'No existe una coincidencia exacta; se creará al registrar tu cuenta.';
+            };
+
+            organizationName.addEventListener('input', selectOrganization);
+            organizationName.addEventListener('change', selectOrganization);
+            selectOrganization();
+        }
     </script>
 </body>
 </html>
